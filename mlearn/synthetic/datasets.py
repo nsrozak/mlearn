@@ -21,8 +21,8 @@ class SyntheticDataset():
         # rescale specified features
         for i, feature_range in enumerate(self.continuous_range):
             scaler = MinMaxScaler(feature_range=feature_range)
-            scaler.fit(X[:, i])
-            X[:, i] = scaler.transform(X[:, i])
+            scaler.fit(X[:, i].reshape(-1, 1))
+            X[:, i] = np.squeeze(scaler.transform(X[:, i].reshape(-1, 1)))
 
         # return rescaled data
         return X
@@ -30,9 +30,9 @@ class SyntheticDataset():
     def _make_categorical(self, X: np.array) -> np.array:
         # make categorical variables
         for i, n_bins in enumerate(self.categories_number):
-            discritizer = KBinsDiscretizer(n_bins, encode='ordinal', strategy='kmeans')
-            discritizer.fit(X[:, i])
-            X[:, i] = discritizer.transform(X[:, i])
+            discritizer = KBinsDiscretizer(n_bins, encode='ordinal', strategy='kmeans', subsample=None)
+            discritizer.fit(X[:, i].reshape(-1, 1))
+            X[:, i] = np.squeeze(discritizer.transform(X[:, i].reshape(-1, 1)))
 
         # return categorical data
         return X
@@ -49,9 +49,9 @@ class SyntheticDataset():
         X[:, :self.num_rescale_continuous] = _X
 
         # create categorical variables
-        _X = X[:, self.num_rescale_continuous:self.num_rescaled_continuous + self.num_categorical].copy()
+        _X = X[:, self.num_rescale_continuous:self.num_rescale_continuous + self.num_categorical].copy()
         _X = self._make_categorical(_X)
-        X[:, self.num_rescale_continuous:self.num_rescaled_continuous + self.num_categorical] = _X
+        X[:, self.num_rescale_continuous:self.num_rescale_continuous + self.num_categorical] = _X
             
         # return array
         return X
@@ -66,12 +66,15 @@ class SyntheticDataset():
 
 
 class SyntheticClassification(SyntheticDataset):
-    def __init__(self, make_classification_kwargs: dict={}):
+    def __init__(self, make_classification_kwargs: dict={}, continuous_range: list=[], 
+                 categories_number: list=[]):
         # initialize parent class
-        super(SyntheticClassification, self).__init__()
+        super(SyntheticClassification, self).__init__(continuous_range=continuous_range, 
+                                                      categories_number=categories_number
+                                                      )
 
         # get data
-        X, y = make_classification(*make_classification_kwargs)
+        X, y = make_classification(**make_classification_kwargs)
         data = self.make_dataframe(X, y)
         self.data = data
 
@@ -80,12 +83,15 @@ class SyntheticClassification(SyntheticDataset):
     
 
 class SyntheticRegression(SyntheticDataset):
-    def __init__(self, make_regression_kwargs: dict={}):
+    def __init__(self, make_regression_kwargs: dict={}, continuous_range: list=[], 
+                 categories_number: list=[]):
         # initialize parent class
-        super(SyntheticRegression, self).__init__()
+        super(SyntheticRegression, self).__init__(continuous_range=continuous_range, 
+                                                  categories_number=categories_number
+                                                 )
 
         # get data
-        X, y = make_regression(*make_regression_kwargs)
+        X, y = make_regression(**make_regression_kwargs)
         data = self.make_dataframe(X, y)
         self.data = data
 
