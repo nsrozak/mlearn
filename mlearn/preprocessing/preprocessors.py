@@ -6,10 +6,10 @@ import pandas as pd
 from sklearn.preprocessing import OneHotEncoder, StandardScaler, RobustScaler, MinMaxScaler
 from sklearn.model_selection import train_test_split
 
-from typing import Optional, Union, Tuple, Any, TypeAlias
+from typing import Optional, Union, Tuple, Any
 
 # create types
-Scaler: TypeAlias = Union[StandardScaler, RobustScaler, MinMaxScaler]
+Scaler = Union[StandardScaler, RobustScaler, MinMaxScaler]
 
 ### Classes ###
 
@@ -19,15 +19,13 @@ class MLPreprocessor():
         y_column: response column in the dataset
         ohe: one-hot encoder object
         ohe_columns: columns that are one-hot encoded
-        ohe_feature_names: feature names for columns after ohe-hot encoding
         scaler: scaler object
         scaler_columns: columns that are scaled
     Returns:
         MLPreprocessor: an instance of the class
     '''
     def __init__(self, y_column: str, ohe: Optional[OneHotEncoder]=None, ohe_columns: list=[], 
-                 ohe_feature_names: list=[], scaler: Optional[Scaler]=None, 
-                 scaler_columns: list=[]):
+                 scaler: Optional[Scaler]=None,  scaler_columns: list=[]):
         # raise errors
         if y_column in ohe_columns:
             raise ValueError('`y_column` cannot be one-hot encoded')
@@ -40,7 +38,6 @@ class MLPreprocessor():
         # ohe member variables
         self.ohe = ohe
         self.ohe_columns = ohe_columns
-        self.ohe_feature_names = ohe_feature_names
 
         # scaler member vairiables
         self.scaler = scaler
@@ -66,9 +63,7 @@ class MLPreprocessor():
             X: features dataframe with one-hot encoded columns
         '''
         X_ohe_series = self.ohe.transform(X[self.ohe_columns])
-        X_ohe = pd.DataFrame(X_ohe_series, index=X.index,
-                             columns=self.ohe_feature_names
-                            )
+        X_ohe = pd.DataFrame(X_ohe_series, index=X.index)
         X = pd.concat([X.drop(columns=self.ohe_columns), X_ohe], axis=1)
         return X
     
@@ -129,8 +124,7 @@ class MLTrainPreprocessor(MLPreprocessor):
         # initialize parent class
         super(MLTrainPreprocessor, self).__init__(y_column=y_column,
                                                   ohe_columns=ohe_columns, 
-                                                  scaler_columns=scaler_columns, 
-                                                  scaler_type=scaler_type
+                                                  scaler_columns=scaler_columns
                                                  )
 
         # determine if data is split
@@ -170,13 +164,9 @@ class MLTrainPreprocessor(MLPreprocessor):
             ohe_kwargs: keyword arguments passed to one-hot encoder object
         '''
         # fit the one hot encoder
-        ohe = OneHotEncoder(*ohe_kwargs)
+        ohe = OneHotEncoder(**ohe_kwargs)
         ohe.fit(data[self.ohe_columns])
         self.ohe = ohe
-
-        # get feature names
-        input_features = data[self.ohe_columns].columns
-        self.ohe_feature_names = self.ohe.get_feature_names(input_features=input_features).tolist()
 
     def _scaler_fit(self, data: pd.DataFrame, scaler_kwargs: dict={}, scaler_type: str='robust'
                     ) -> None:
@@ -188,16 +178,16 @@ class MLTrainPreprocessor(MLPreprocessor):
         '''
         # create scaler
         if scaler_type == 'robust':
-            scaler = RobustScaler(*scaler_kwargs)
+            scaler = RobustScaler(**scaler_kwargs)
         elif scaler_type == 'standard': 
-            scaler = StandardScaler(*scaler_kwargs)
+            scaler = StandardScaler(**scaler_kwargs)
         else:
-            scaler= MinMaxScaler(*scaler_kwargs)
+            scaler= MinMaxScaler(**scaler_kwargs)
 
         # fit scaler
         scaler.fit(data[self.scaler_columns])
 
-    def get_ohe(self) -> Tuple[Optional[OneHotEncoder], Optional[list], Optional[list]]:
+    def get_ohe(self) -> Tuple[Optional[OneHotEncoder], Optional[list]]:
         ''' Gets one-hot encoder items
         Returns:
             ohe: one-hot encoder object
@@ -205,9 +195,9 @@ class MLTrainPreprocessor(MLPreprocessor):
             ohe_feature_names: feature names for columns after ohe-hot encoding
         '''
         if self.ohe is not None:
-            return self.ohe, self.ohe_columns, self.ohe_feature_names
+            return self.ohe, self.ohe_columns
         else:
-            return None, None, None
+            return None, None
         
     def get_scaler(self) -> Tuple[Optional[Scaler], Optional[list]]:
         ''' Gets scaler items

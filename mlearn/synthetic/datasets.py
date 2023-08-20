@@ -10,6 +10,13 @@ from sklearn.preprocessing import MinMaxScaler, KBinsDiscretizer
 ### Classes ###
 
 class SyntheticDataset():
+    '''
+    Args:
+        continuous_range: range for each of the continuous variables, as [(low1, high1), ...]
+        categories_number: number of categories for each categorical variable, as [num1, ...]
+    Returns:
+        SyntheticDataset: an instance of the class
+    '''
     def __init__(self, continuous_range: list=[], categories_number: list=[]):
         # initialize member variables
         self.continuous_range = continuous_range
@@ -18,6 +25,12 @@ class SyntheticDataset():
         self.num_categorical = len(categories_number)
 
     def _rescale_continuous(self, X: np.array) -> np.array:
+        ''' Rescales continuous variables
+        Args:
+            X: original continuous data
+        Returns:
+            X: rescaled continuous data
+        '''
         # rescale specified features
         for i, feature_range in enumerate(self.continuous_range):
             scaler = MinMaxScaler(feature_range=feature_range)
@@ -28,6 +41,12 @@ class SyntheticDataset():
         return X
     
     def _make_categorical(self, X: np.array) -> np.array:
+        ''' Makes categorical variables
+        Args:
+            X: original non-categorical data
+        Returns:
+            X: binned categorical data
+        '''
         # make categorical variables
         for i, n_bins in enumerate(self.categories_number):
             discritizer = KBinsDiscretizer(n_bins, encode='ordinal', strategy='kmeans', subsample=None)
@@ -38,6 +57,12 @@ class SyntheticDataset():
         return X
 
     def _enhance_features(self, X: np.array) -> np.array:
+        ''' enhances features
+        Args: 
+            X: original data
+        Returns:
+            X: data with enhanced features
+        '''
         # raise errors
         if (self.num_rescale_continuous > 0) and (self.num_categorical > 0):
             if X.shape[1] < self.num_rescale_continuous + self.num_categorical:
@@ -57,6 +82,13 @@ class SyntheticDataset():
         return X
     
     def make_dataframe(self, X: np.array, y: np.array) -> pd.DataFrame:
+        ''' Makes a dataframe out of arrays
+        Args:
+            X: features data
+            y: response data
+        Returns:
+            data: dataframe
+        '''
         # enhance features
         X = self._enhance_features(X)
         # make dataframe
@@ -66,6 +98,14 @@ class SyntheticDataset():
 
 
 class SyntheticClassification(SyntheticDataset):
+    '''
+    Args:
+        make_classification_kwargs: keyword arguments for the make_classification function
+        continuous_range: range for each of the continuous variables, as [(low1, high1), ...]
+        categories_number: number of categories for each categorical variable, as [num1, ...]
+    Returns:
+        SyntheticClassification: an instance of the class
+    '''
     def __init__(self, make_classification_kwargs: dict={}, continuous_range: list=[], 
                  categories_number: list=[]):
         # initialize parent class
@@ -79,10 +119,22 @@ class SyntheticClassification(SyntheticDataset):
         self.data = data
 
     def get_data(self) -> pd.DataFrame:
+        ''' Gets the data
+        Returns:
+            data: the dataframe of synthetic data
+        '''
         return self.data
     
 
 class SyntheticRegression(SyntheticDataset):
+    '''
+    Args:
+        make_regression_kwargs: keyword arguments for the make_regression function
+        continuous_range: range for each of the continuous variables, as [(low1, high1), ...]
+        categories_number: number of categories for each categorical variable, as [num1, ...]
+    Returns:
+        SyntheticRegression: an instance of the class
+    '''
     def __init__(self, make_regression_kwargs: dict={}, continuous_range: list=[], 
                  categories_number: list=[]):
         # initialize parent class
@@ -96,4 +148,8 @@ class SyntheticRegression(SyntheticDataset):
         self.data = data
 
     def get_data(self) -> pd.DataFrame:
+        ''' Gets the data
+        Returns:
+            data: the dataframe of synthetic data
+        '''
         return self.data
