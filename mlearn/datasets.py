@@ -20,11 +20,18 @@ class SyntheticDataset():
     def __init__(self, continuous_range: list=[], categories_number: list=[]):
         # initialize member variables
         self.continuous_range = continuous_range
-        self.num_rescale_continuous = len(continuous_range)
-        self.categories_number = categories_number
-        self.num_categorical = len(categories_number)
+        num_rescale_continuous = len(continuous_range)
+        self.continuous_features = ['feature_' + str(i) for i in range(num_rescale_continuous)]
 
-    def _rescale_continuous(self, X: np.array) -> np.array:
+        self.categories_number = categories_number
+        num_categorical = len(categories_number)
+        self.categorical_features = ['feature_' + str(i) for i in 
+                                     range(num_rescale_continuous, 
+                                           num_rescale_continuous + num_categorical
+                                           )
+                                    ]
+
+    def _rescale_continuous(self, X: pd.DataFrame) -> pd.DataFrame:
         ''' Rescales continuous variables
         Args:
             X: original continuous data
@@ -34,13 +41,13 @@ class SyntheticDataset():
         # rescale specified features
         for i, feature_range in enumerate(self.continuous_range):
             scaler = MinMaxScaler(feature_range=feature_range)
-            scaler.fit(X[:, i].reshape(-1, 1))
-            X[:, i] = np.squeeze(scaler.transform(X[:, i].reshape(-1, 1)))
+            scaler.fit(X[self.continuous_features[i]].to_numpy().reshape(-1, 1))
+            X[self.continuous_features[i]] = scaler.transform(X[self.continuous_features[i]].to_numpy().reshape(-1, 1))
 
         # return rescaled data
         return X
     
-    def _make_categorical(self, X: np.array) -> np.array:
+    def _make_categorical(self, X: pd.DataFrame) -> pd.DataFrame:
         ''' Makes categorical variables
         Args:
             X: original non-categorical data
@@ -50,14 +57,14 @@ class SyntheticDataset():
         # make categorical variables
         for i, n_bins in enumerate(self.categories_number):
             discritizer = KBinsDiscretizer(n_bins, encode='ordinal', strategy='kmeans', subsample=None)
-            discritizer.fit(X[:, i].reshape(-1, 1))
-            col = np.squeeze(discritizer.transform(X[:, i].reshape(-1, 1)))
-            X[:, i] = np.array([chr(ord('@') + int(c)) for c in col])
+            discritizer.fit(X[self.categorical_features[i]].to_numpy().reshape(-1, 1))
+            X[self.categorical_features[i]] = discritizer.transform(X[self.categorical_features[i]].to_numpy().reshape(-1, 1))
+            X[self.categorical_features[i]]  = [chr(ord('@') + int(x)) for x in X[self.categorical_features[i]]]
 
         # return categorical data
         return X
 
-    def _enhance_features(self, X: np.array) -> np.array:
+    def enhance_features(self, X: pd.DataFrame) -> pd.DataFrame:
         ''' enhances features
         Args: 
             X: original data
@@ -65,38 +72,16 @@ class SyntheticDataset():
             X: data with enhanced features
         '''
         # raise errors
-        if (self.num_rescale_continuous > 0) and (self.num_categorical > 0):
-            if X.shape[1] < self.num_rescale_continuous + self.num_categorical:
+        if (len(self.continuous_features) > 0) and (len(self.categorical_features) > 0):
+            if X.shape[1] < len(self.continuous_features) + len(self.categorical_features):
                 raise ValueError('`X` does not have enough columns for prespecified enhancements')
             
-        # rescale continuous features
-        _X = X[:, :self.num_rescale_continuous].copy()
-        _X = self._rescale_continuous(_X)
-        X[:, :self.num_rescale_continuous] = _X
-
-        # create categorical variables
-        _X = X[:, self.num_rescale_continuous:self.num_rescale_continuous + self.num_categorical].copy()
-        _X = self._make_categorical(_X)
-        X[:, self.num_rescale_continuous:self.num_rescale_continuous + self.num_categorical] = _X
+        # update features
+        X = self._rescale_continuous(X)
+        X = self._make_categorical(X)
             
-        # return array
+        # return dataframe
         return X
-    
-    def make_dataframe(self, X: np.array, y: np.array) -> pd.DataFrame:
-        ''' Makes a dataframe out of arrays
-        Args:
-            X: features data
-            y: response data
-        Returns:
-            data: dataframe
-        '''
-        # enhance features
-        X = X.astype(object)
-        X = self._enhance_features(X)
-        # make dataframe
-        data = pd.DataFrame(X, columns=['feature_' + str(i) for i in range(X.shape[1])])
-        data['y'] = y
-        return data
 
 
 class SyntheticClassification(SyntheticDataset):
@@ -117,7 +102,9 @@ class SyntheticClassification(SyntheticDataset):
 
         # get data
         X, y = make_classification(**make_classification_kwargs)
-        data = self.make_dataframe(X, y)
+        X = pd.DataFrame(X, columns=['feature_' + str(i) for i in range(X.shape[1])])
+        data = self.enhance_features(X)
+        data['y'] = y
         self.data = data
 
     def get_data(self) -> pd.DataFrame:
@@ -146,7 +133,9 @@ class SyntheticRegression(SyntheticDataset):
 
         # get data
         X, y = make_regression(**make_regression_kwargs)
-        data = self.make_dataframe(X, y)
+        X = pd.DataFrame(X, columns=['feature_' + str(i) for i in range(X.shape[1])])
+        data = self.enhance_features(X)
+        data['y'] = y
         self.data = data
 
     def get_data(self) -> pd.DataFrame:

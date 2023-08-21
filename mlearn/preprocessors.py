@@ -142,10 +142,10 @@ class MLTrainPreprocessor(MLPreprocessor):
             train = data.copy()
 
         # fit quantities
-        if len(ohe_columns) > 0:
+        if len(self.ohe_columns) > 0:
             self._ohe_fit(train, ohe_kwargs=ohe_kwargs)
 
-        if len(scaler_columns) > 0:
+        if len(self.scaler_columns) > 0:
             self._scaler_fit(train, scaler_kwargs=scaler_kwargs)
 
         # preprocess data
@@ -196,7 +196,7 @@ class MLTrainPreprocessor(MLPreprocessor):
         # fit scaler
         scaler.fit(data[self.scaler_columns])
 
-    def get_ohe(self) -> Tuple[Optional[OneHotEncoder], Optional[list]]:
+    def get_ohe(self) -> Tuple[Optional[OneHotEncoder], Optional[list], Optional[list]]:
         ''' Gets one-hot encoder items
         Returns:
             ohe: one-hot encoder object
@@ -204,20 +204,20 @@ class MLTrainPreprocessor(MLPreprocessor):
             ohe_feature_names: feature names for columns after ohe-hot encoding
         '''
         if self.ohe is not None:
-            return self.ohe, self.ohe_columns
+            return self.ohe, self.ohe_columns, self.ohe_feature_names
         else:
-            return None, None
+            return None, None, None
         
-    def get_scaler(self) -> Tuple[Optional[Scaler], Optional[list], Optional[list]]:
+    def get_scaler(self) -> Tuple[Optional[Scaler], Optional[list]]:
         ''' Gets scaler items
         Returns:
             scaler: scaler object
             scaler_columns: columns that are scaled
         '''
         if self.scaler is not None:
-            return self.scaler, self.scaler_columns, self.ohe_feature_names
+            return self.scaler, self.scaler_columns
         else:
-            return None, None, None
+            return None, None
 
     def get_data(self) -> Tuple[Any, ...]:
         ''' gets data
