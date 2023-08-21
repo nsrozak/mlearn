@@ -51,7 +51,8 @@ class SyntheticDataset():
         for i, n_bins in enumerate(self.categories_number):
             discritizer = KBinsDiscretizer(n_bins, encode='ordinal', strategy='kmeans', subsample=None)
             discritizer.fit(X[:, i].reshape(-1, 1))
-            X[:, i] = np.squeeze(discritizer.transform(X[:, i].reshape(-1, 1)))
+            col = np.squeeze(discritizer.transform(X[:, i].reshape(-1, 1)))
+            X[:, i] = np.array([chr(ord('@') + int(c)) for c in col])
 
         # return categorical data
         return X
@@ -90,6 +91,7 @@ class SyntheticDataset():
             data: dataframe
         '''
         # enhance features
+        X = X.astype(object)
         X = self._enhance_features(X)
         # make dataframe
         data = pd.DataFrame(X, columns=['feature_' + str(i) for i in range(X.shape[1])])

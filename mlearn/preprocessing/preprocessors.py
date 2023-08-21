@@ -19,13 +19,15 @@ class MLPreprocessor():
         y_column: response column in the dataset
         ohe: one-hot encoder object
         ohe_columns: columns that are one-hot encoded
+        ohe_feature_names: feature names for columns after ohe-hot encoding
         scaler: scaler object
         scaler_columns: columns that are scaled
     Returns:
         MLPreprocessor: an instance of the class
     '''
     def __init__(self, y_column: str, ohe: Optional[OneHotEncoder]=None, ohe_columns: list=[], 
-                 scaler: Optional[Scaler]=None,  scaler_columns: list=[]):
+                 ohe_feature_names: list=[], scaler: Optional[Scaler]=None,  
+                 scaler_columns: list=[]):
         # raise errors
         if y_column in ohe_columns:
             raise ValueError('`y_column` cannot be one-hot encoded')
@@ -38,6 +40,7 @@ class MLPreprocessor():
         # ohe member variables
         self.ohe = ohe
         self.ohe_columns = ohe_columns
+        self.ohe_feature_names = ohe_feature_names
 
         # scaler member vairiables
         self.scaler = scaler
@@ -63,7 +66,9 @@ class MLPreprocessor():
             X: features dataframe with one-hot encoded columns
         '''
         X_ohe_series = self.ohe.transform(X[self.ohe_columns])
-        X_ohe = pd.DataFrame(X_ohe_series, index=X.index)
+        X_ohe = pd.DataFrame(X_ohe_series, index=X.index,
+                             columns=self.ohe_feature_names
+                            )
         X = pd.concat([X.drop(columns=self.ohe_columns), X_ohe], axis=1)
         return X
     
@@ -168,6 +173,10 @@ class MLTrainPreprocessor(MLPreprocessor):
         ohe.fit(data[self.ohe_columns])
         self.ohe = ohe
 
+        # get features
+        input_features = data[self.ohe_columns].columns
+        self.ohe_feature_names = self.ohe.get_feature_names_out(input_features=input_features).tolist()
+
     def _scaler_fit(self, data: pd.DataFrame, scaler_kwargs: dict={}, scaler_type: str='robust'
                     ) -> None:
         ''' Fits a scaler for `scaler_columns`
@@ -199,16 +208,16 @@ class MLTrainPreprocessor(MLPreprocessor):
         else:
             return None, None
         
-    def get_scaler(self) -> Tuple[Optional[Scaler], Optional[list]]:
+    def get_scaler(self) -> Tuple[Optional[Scaler], Optional[list], Optional[list]]:
         ''' Gets scaler items
         Returns:
             scaler: scaler object
             scaler_columns: columns that are scaled
         '''
         if self.scaler is not None:
-            return self.scaler, self.scaler_columns
+            return self.scaler, self.scaler_columns, self.ohe_feature_names
         else:
-            return None, None
+            return None, None, None
 
     def get_data(self) -> Tuple[Any, ...]:
         ''' gets data

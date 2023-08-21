@@ -30,7 +30,7 @@ print(data.describe())
 y_column = 'y'
 test_size = 0.3
 ohe_columns = ['feature_9', 'feature_10', 'feature_11']
-ohe_kwargs = {'drop': 'first', 'sparse': False}
+ohe_kwargs = {'drop': 'first', 'sparse_output': False}
 scaler_columns = ['feature_0', 'feature_1', 'feature_2', 'feature_3', 'feature_4', 
                   'feature_5', 'feature_6', 'feature_7', 'feature_8'
                  ]
