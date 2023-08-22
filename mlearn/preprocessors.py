@@ -119,7 +119,7 @@ class MLTrainPreprocessor(MLPreprocessor):
         MLTrainPreprocessor: an instance of the class
     '''
     def __init__(self, data: pd.DataFrame, y_column: str, test_size: Optional[float]=None, 
-                 ohe_columns: list=[], ohe_kwargs: dict={'drop': 'first', 'sparse': False}, 
+                 ohe_columns: list=[], ohe_kwargs: dict={'drop': 'first', 'sparse_output': False}, 
                  scaler_columns: list=[], scaler_kwargs: dict={}, scaler_type: str='robust',
                  random_state: Optional[int]=123):
         # raise errors
@@ -146,7 +146,7 @@ class MLTrainPreprocessor(MLPreprocessor):
             self._ohe_fit(train, ohe_kwargs=ohe_kwargs)
 
         if len(self.scaler_columns) > 0:
-            self._scaler_fit(train, scaler_kwargs=scaler_kwargs)
+            self._scaler_fit(train, scaler_kwargs=scaler_kwargs, scaler_type=scaler_type)
 
         # preprocess data
         X, y = self.preprocess_dataset(train)
