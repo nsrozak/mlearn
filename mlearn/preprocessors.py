@@ -29,9 +29,9 @@ class MLPreprocessor():
                  ohe_feature_names: list=[], scaler: Optional[Scaler]=None,  
                  scaler_columns: list=[]):
         # raise errors
-        if y_column in ohe_columns:
+        if (ohe is not None) and (y_column in ohe_columns):
             raise ValueError('`y_column` cannot be one-hot encoded')
-        if y_column in scaler_columns:
+        if (scaler is not None) and (y_column in scaler_columns):
             raise ValueError('`y_column` cannot be scaled')
 
         # member variables
@@ -191,10 +191,11 @@ class MLTrainPreprocessor(MLPreprocessor):
         elif scaler_type == 'standard': 
             scaler = StandardScaler(**scaler_kwargs)
         else:
-            scaler= MinMaxScaler(**scaler_kwargs)
+            scaler = MinMaxScaler(**scaler_kwargs)
 
         # fit scaler
         scaler.fit(data[self.scaler_columns])
+        self.scaler = scaler
 
     def get_ohe(self) -> Tuple[Optional[OneHotEncoder], Optional[list], Optional[list]]:
         ''' Gets one-hot encoder items

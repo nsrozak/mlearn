@@ -92,7 +92,7 @@ ml_preprocessor = MLPreprocessor(y_column, ohe=ohe, ohe_columns=ohe_columns,
 
 X_test, y_test = ml_preprocessor.preprocess_dataset(test_data)
 test = X_test.copy()
-test['y'] = test
+test['y'] = y_test
 
 # print preprocessed summary statistics
 print('Summary statistics of test data')
