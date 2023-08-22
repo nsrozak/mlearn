@@ -114,7 +114,7 @@ class MLTrainPreprocessor(MLPreprocessor):
         scaler_columns: columns that are scaled
         scaler_kwargs: keyword arguments passed to scaler object
         scaler_type: type of scaler, one of {'robust', 'standard', 'minmax'}
-        random_state: reproducibility number used for splitting data
+        random_state: reproducibility number used for spliting data
     Returns:
         MLTrainPreprocessor: an instance of the class
     '''

@@ -1,12 +1,20 @@
 ### Set Up ###
 
 # global imports
+import scipy.stats as stats
+from sklearn.ensemble import GradientBoostingRegressor
+
 from mlearn.datasets import SyntheticRegression
 from mlearn.preprocessors import MLTrainPreprocessor, MLPreprocessor
+from mlearn.modelers import MLTrainModel, MLModel
+
+# general arguments
+random_state = 123
 
 # training function arguments
 train_make_regression_kwargs = {'n_samples': 1000, 
                                 'n_features': 12,
+                                'n_informative': 12,
                                 'random_state': 123
                                }
 continuous_range = [(-100, 100), (10, 20), (0, 50), (-5, 5), 
@@ -23,11 +31,22 @@ scaler_columns = ['feature_0', 'feature_1', 'feature_2', 'feature_3', 'feature_4
                  ]
 scaler_kwargs = {}
 scaler_type = 'robust'
-random_state = 123
+
+max_features = 1 / 3
+classification = False
+n_splits = 5
+n_iter = 50
+scoring = 'neg_root_mean_squared_error'
+param_distributions = {'max_depth': stats.randint(1, 15),
+                       'min_samples_leaf': stats.randint(1, 10),
+                       'n_estimators': stats.randint(25, 500),
+                       'learning_rate': stats.uniform(0.001, 0.1)
+                      }
 
 # testing function arguments
 test_make_regression_kwargs = {'n_samples': 100, 
                                'n_features': 12,
+                               'n_informative': 12,
                                'random_state': 456
                               }
 
@@ -68,6 +87,19 @@ print(train.describe())
 print('Summary statistics of validation data')
 print(val.describe())
 
+# train the model
+model = GradientBoostingRegressor(max_features=max_features, random_state=random_state)
+ml_train_model = MLTrainModel(model, 
+                              classification=classification, 
+                              n_splits=n_splits, 
+                              n_iter=n_iter,
+                              scoring=scoring, 
+                              random_state=random_state
+                              )
+
+y_hat, score = ml_train_model.train(X, y, param_distributions=param_distributions)
+y_val_hat, val_score = ml_train_model.predict(X_val, y_val)
+
 ### Testing ###
 
 # generate synthetic data
@@ -97,3 +129,8 @@ test['y'] = y_test
 # print preprocessed summary statistics
 print('Summary statistics of test data')
 print(test.describe())
+
+# get predictions
+model = ml_train_model.get_model()
+ml_model = MLModel(model, classification=classification)
+y_test_hat, test_score = ml_model.predict(X_test, y_test)
