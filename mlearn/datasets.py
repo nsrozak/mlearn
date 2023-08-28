@@ -59,7 +59,7 @@ class SyntheticDataset():
             discritizer = KBinsDiscretizer(n_bins, encode='ordinal', strategy='kmeans', subsample=None)
             discritizer.fit(X[self.categorical_features[i]].to_numpy().reshape(-1, 1))
             X[self.categorical_features[i]] = discritizer.transform(X[self.categorical_features[i]].to_numpy().reshape(-1, 1))
-            X[self.categorical_features[i]]  = [chr(ord('@') + int(x)) for x in X[self.categorical_features[i]]]
+            X[self.categorical_features[i]]  = [chr(ord('@') + int(x) + 1) for x in X[self.categorical_features[i]]]
 
         # return categorical data
         return X
