@@ -1,6 +1,8 @@
 ### Set Up ###
 
 # global imports
+import os
+import joblib
 import pandas as pd
 
 from sklearn.preprocessing import OneHotEncoder, StandardScaler, RobustScaler, MinMaxScaler
@@ -221,7 +223,7 @@ class MLTrainPreprocessor(MLPreprocessor):
             return None, None
 
     def get_data(self) -> Tuple[Any, ...]:
-        ''' gets data
+        ''' Gets data
         Returns
             X: train features dataframe
             y: train response data
@@ -232,4 +234,21 @@ class MLTrainPreprocessor(MLPreprocessor):
             return self.X, self.y, self.X_test, self.y_test
         else:
             return self.X, self.y
+        
+    def save_ohe(self, path: str) -> None:
+        ''' Saves one-hot encoder object
+        Args:
+            path: directory for saving objects
+        '''
+        joblib.dump(self.ohe, os.path.join(path, 'ohe.pkl'))
+        joblib.dump(self.ohe_columns, os.path.join(path, 'ohe_columns.pkl'))
+        joblib.dump(self.ohe_feature_names, os.path.join(path, 'ohe_feature_names.pkl'))
+
+    def save_scaler(self, path: str) -> None:
+        ''' Saves scaler object
+        Args:
+            path: directory for saving objects
+        '''
+        joblib.dump(self.scaler, os.path.join(path, 'scaler.pkl'))
+        joblib.dump(self.scaler_columns, os.path.join(path, 'scaler_columns.pkl'))
         

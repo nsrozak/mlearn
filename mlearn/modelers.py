@@ -1,6 +1,8 @@
 ### Set Up ###
 
 # global imports
+import os
+import joblib
 import pandas as pd
 
 from sklearn.model_selection import RandomizedSearchCV, StratifiedKFold, KFold
@@ -13,12 +15,13 @@ from typing import Any, Tuple
 class MLModel():
     '''
     Args:
-        model: model with `.fit(X, y)` and `.predict(X)` methods
+        model: model or path to model with `.fit(X, y)` and `.predict(X)` methods
         classification: whether the model is classificaiton or regression
     Returns:
         MLModel: an instance of the class
     '''
     def __init__(self, model: Any, classification: bool=True):
+        # set member variables
         self.model = model
         self.classification = classification  
 
@@ -150,4 +153,11 @@ class MLTrainModel(MLModel):
             model: the model
         '''
         return self.model
+    
+    def save_model(self, path: str) -> None:
+        ''' saves model object
+        Args:
+            path: directory for saving objects
+        '''
+        joblib.dump(self.model, os.path.join(path, 'model.pkl'))
     

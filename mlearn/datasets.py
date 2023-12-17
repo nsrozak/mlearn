@@ -1,7 +1,7 @@
 ### Set Up ###
 
 # global imports
-import numpy as np
+import os
 import pandas as pd
 
 from sklearn.datasets import make_classification, make_regression
@@ -65,7 +65,7 @@ class SyntheticDataset():
         return X
 
     def enhance_features(self, X: pd.DataFrame) -> pd.DataFrame:
-        ''' enhances features
+        ''' Enhances features
         Args: 
             X: original data
         Returns:
@@ -114,6 +114,13 @@ class SyntheticClassification(SyntheticDataset):
         '''
         return self.data
     
+    def save_data(self, path: str) -> None:
+        ''' Saves data as a csv
+        Args:
+            path: directory for saving objects
+        '''
+        self.data.to_csv(os.path.join(path, 'data.csv'), index=False)
+    
 
 class SyntheticRegression(SyntheticDataset):
     '''
@@ -144,3 +151,10 @@ class SyntheticRegression(SyntheticDataset):
             data: the dataframe of synthetic data
         '''
         return self.data
+    
+    def save_data(self, path: str) -> None:
+        ''' Saves data as a csv
+        Args:
+            path: directory for saving objects
+        '''
+        self.data.to_csv(os.path.join(path, 'data.csv'), index=False)

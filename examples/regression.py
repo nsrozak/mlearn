@@ -1,12 +1,17 @@
 ### Set Up ###
 
 # global imports
+import os
 import scipy.stats as stats
 from sklearn.ensemble import GradientBoostingRegressor
 
 from mlearn.datasets import SyntheticRegression
 from mlearn.preprocessors import MLTrainPreprocessor, MLPreprocessor
 from mlearn.modelers import MLTrainModel, MLModel
+
+# folder paths
+data_path = os.path.join(os.getcwd(), 'data')
+objects_path = os.path.join(os.getcwd(), 'objects')
 
 # general arguments
 random_state = 123
